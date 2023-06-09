@@ -195,8 +195,8 @@ path:
 modifier:
   | d=SIDE? ASSOCIATIVE
     { let b = match d with Some Pratter.Left -> true | _ -> false in
-      make_pos $sloc (P_prop (Term.Assoc b)) }
-  | COMMUTATIVE { make_pos $sloc (P_prop Term.Commu) }
+      make_pos $sloc (P_eqth (Term.Assoc b)) }
+  | COMMUTATIVE { make_pos $sloc (P_eqth Term.Commu) }
   | CONSTANT { make_pos $sloc (P_prop Term.Const) }
   | INJECTIVE { make_pos $sloc (P_prop Term.Injec) }
   | OPAQUE { make_pos $sloc P_opaq }

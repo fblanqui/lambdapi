@@ -31,14 +31,18 @@ type expo =
   | Protec (** Visible everywhere but usable in LHS arguments only. *)
   | Privat (** Not visible and thus not usable. *)
 
+(** Symbol equational theory. *)
+type eqth =
+  | Empty
+  | Commu (** Commutative. *)
+  | Assoc of bool (** To the left if [true], to the right if [false]. *)
+  | AC of bool (** Associative and Commutative. *)
+
 (** Symbol properties. *)
 type prop =
   | Defin (** Definable. *)
   | Const (** Constant. *)
   | Injec (** Injective. *)
-  | Commu (** Commutative. *)
-  | Assoc of bool (** Associative left if [true], right if [false]. *)
-  | AC of bool (** Associative and commutative. *)
 
 (** Representation of a term (or types) in a general sense. Values of the type
     are also used, for example, in the representation of patterns or rewriting
@@ -91,6 +95,7 @@ and sym =
   ; sym_type  : term ref (** Type. *)
   ; sym_impl  : bool list (** Implicit arguments ([true] meaning implicit). *)
   ; sym_prop  : prop (** Property. *)
+  ; sym_eqth  : eqth (** Equational theory. *)
   ; sym_def   : term option ref (** Definition with ≔. *)
   ; sym_opaq  : bool (** Opacity. *)
   ; sym_rules : rule list ref (** Rewriting rules. *)
@@ -297,7 +302,7 @@ module SymMap : Map.S with type key = sym
    position [pos], path [path], exposition [expo], property [prop], opacity
    [opaq], matching strategy [mstrat], name [name.elt], type [typ], implicit
    arguments [impl], position [name.pos], no definition and no rules. *)
-val create_sym : Path.t -> expo -> prop -> match_strat -> bool ->
+val create_sym : Path.t -> expo -> prop -> eqth -> match_strat -> bool ->
   Pos.strloc -> term -> bool list -> sym
 
 (** [is_constant s] tells whether the symbol is a constant. *)

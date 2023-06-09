@@ -80,46 +80,57 @@ let handle_require_as : compiler -> sig_state -> p_path -> p_ident ->
 
 (** [handle_modifiers ms] verifies that the modifiers in [ms] are compatible.
     If so, they are returned as a tuple. Otherwise, it fails. *)
-let handle_modifiers : p_modifier list -> prop * expo * match_strat =
+let handle_modifiers : p_modifier list -> prop * eqth * expo * match_strat =
   fun ms ->
-  let rec get_modifiers ((props, expos, strats) as acc) = function
+  let rec get_modifiers ((props, eqths, expos, strats) as acc) = function
     | [] -> acc
-    | {elt=P_prop _;_} as p::ms -> get_modifiers (p::props, expos, strats) ms
-    | {elt=P_expo _;_} as e::ms -> get_modifiers (props, e::expos, strats) ms
-    | {elt=P_mstrat _;_} as s::ms ->
-        get_modifiers (props, expos, s::strats) ms
+    | {elt=P_prop _;_} as m::ms ->
+        get_modifiers (m::props, eqths, expos, strats) ms
+    | {elt=P_eqth _;_} as m::ms ->
+        get_modifiers (props, m::eqths, expos, strats) ms
+    | {elt=P_expo _;_} as m::ms ->
+        get_modifiers (props, eqths, m::expos, strats) ms
+    | {elt=P_mstrat _;_} as m::ms ->
+        get_modifiers (props, eqths, expos, m::strats) ms
     | {elt=P_opaq;_}::ms -> get_modifiers acc ms
   in
-  let props, expos, strats = get_modifiers ([],[],[]) ms in
+  let props, eqths, expos, strats = get_modifiers ([],[],[],[]) ms in
   let prop =
     match props with
-    | [{elt=P_prop (Assoc b);_};{elt=P_prop Commu;_}]
-    | [{elt=P_prop Commu;_};{elt=P_prop (Assoc b);_}] -> AC b
+    | [] -> Defin
+    | [{elt=P_prop p;_}] -> p
     | _::{pos;_}::_ -> fatal pos "Incompatible or duplicated properties."
-    | [{elt=P_prop (Assoc _);pos}] ->
+    | _ -> assert false
+  in
+  let eqth =
+    match eqths with
+    | [] -> Empty
+    | [{elt=P_eqth (Assoc _);pos}] ->
         fatal pos "Associativity alone is not allowed as \
                    you can use a rewriting rule instead."
-    | [{elt=P_prop p;_}] -> p
-    | [] -> Defin
+    | [{elt=P_eqth p;_}] -> p
+    | [{elt=P_eqth (Assoc b);_};{elt=P_eqth Commu;_}]
+    | [{elt=P_eqth Commu;_};{elt=P_eqth (Assoc b);_}] -> AC b
+    | _::{pos;_}::_ -> fatal pos "Incompatible or duplicated properties."
     | _ -> assert false
   in
   let expo =
     match expos with
+    | [] -> Public
+    | [{elt=P_expo e;_}] -> e
     | _::{pos;_}::_ ->
         fatal pos "Incompatible or duplicated exposition markers."
-    | [{elt=P_expo e;_}] -> e
-    | [] -> Public
     | _ -> assert false
   in
   let strat =
     match strats with
+    | [] -> Eager
+    | [{elt=P_mstrat s;_}] -> s
     | _::{pos;_}::_ ->
         fatal pos "Incompatible or duplicated matching strategies."
-    | [{elt=P_mstrat s;_}] -> s
-    | [] -> Eager
     | _ -> assert false
   in
-  (prop, expo, strat)
+  (prop, eqth, expo, strat)
 
 (** [check_rule ss syms r] checks rule [r] and returns the head symbol of the
    lhs and the rule itself. *)
@@ -163,7 +174,8 @@ let handle_inductive_symbol : sig_state -> expo -> prop -> match_strat
   end;
   (* Actually add the symbol to the signature and the state. *)
   Console.out 2 (Color.red "symbol %a : %a") uid name term typ;
-  let r = Sig_state.add_symbol ss expo prop mstrat false id typ impl None in
+  let r = Sig_state.add_symbol
+            ss expo prop Empty mstrat false id typ impl None in
   sig_state := fst r; r
 
 (** Representation of a yet unchecked proof. The structure is initialized when
@@ -286,12 +298,14 @@ let get_proof_data : compiler -> sig_state -> p_command -> cmd_output =
 
   | P_inductive(ms, params, p_ind_list) ->
       (* Check modifiers. *)
-      let (prop, expo, mstrat) = handle_modifiers ms in
+      let (prop, eqth, expo, mstrat) = handle_modifiers ms in
       if prop <> Defin then
         fatal pos "Property modifiers cannot be used on inductive types.";
       if mstrat <> Eager then
         fatal pos "Pattern matching strategy modifiers cannot be used on \
-                       inductive types.";
+                   inductive types.";
+      if eqth <> Empty then
+        fatal pos "Theory modifiers cannot be used on inductive types.";
       (* Add inductive types in the signature. *)
       let add_ind_sym (ss, ind_sym_list) {elt=(id,pt,_); _} =
         let (ss, ind_sym) =
@@ -353,8 +367,8 @@ let get_proof_data : compiler -> sig_state -> p_command -> cmd_output =
           (* Recursors are declared after the types and constructors. *)
           let pos = after (end_pos pos) in
           let id = Pos.make pos rec_name in
-          let r =
-            Sig_state.add_symbol ss expo Defin Eager false id rec_typ [] None
+          let r = Sig_state.add_symbol
+                    ss expo Defin Empty Eager false id rec_typ [] None
           in sig_state := fst r; r
         in
         (ss, rec_sym::rec_sym_list)
@@ -392,7 +406,7 @@ let get_proof_data : compiler -> sig_state -> p_command -> cmd_output =
       | _ -> ()
     end;
     (* Verify modifiers. *)
-    let prop, expo, mstrat = handle_modifiers p_sym_mod in
+    let prop, eqth, expo, mstrat = handle_modifiers p_sym_mod in
     let opaq = List.exists Syntax.is_opaq p_sym_mod in
     let pdata_prv = expo = Privat || (p_sym_def && opaq) in
     (match p_sym_def, opaq, prop, mstrat with
@@ -498,7 +512,7 @@ let get_proof_data : compiler -> sig_state -> p_command -> cmd_output =
             in
             (* Add the symbol in the signature. *)
             fst (Sig_state.add_symbol
-                   ss expo prop mstrat opaq p_sym_nam a impl d)
+                   ss expo prop eqth mstrat opaq p_sym_nam a impl d)
         | P_proof_end ->
             (* Check that the proof is indeed finished. *)
             if not (finished ps) then
@@ -513,7 +527,7 @@ let get_proof_data : compiler -> sig_state -> p_command -> cmd_output =
             (* Add the symbol in the signature. *)
             Console.out 2 (Color.red "symbol %a : %a") uid id term a;
             fst (Sig_state.add_symbol
-                   ss expo prop mstrat opaq p_sym_nam a impl d)
+                   ss expo prop eqth mstrat opaq p_sym_nam a impl d)
       in
       (* Create the proof state. *)
       let pdata_state =

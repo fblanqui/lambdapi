@@ -170,8 +170,12 @@ let modifiers : sym -> string list = fun s ->
     match s.sym_prop with
     | Const -> ()
     | Injec -> add "injective"
-    | AC _ -> add "defac"
     | Defin -> add "def"
+  end;
+  begin
+    match s.sym_eqth with
+    | Empty -> ()
+    | AC _ -> add "defac"
     | Assoc _ -> assert false
     | Commu -> assert false
   end;
@@ -181,7 +185,7 @@ let modifiers : sym -> string list = fun s ->
 let sym_decl : sym pp = fun ppf s ->
   match !(s.sym_def) with
   | None ->
-    begin match s.sym_prop with
+    begin match s.sym_eqth with
       | AC _ ->
         begin match unfold !(s.sym_type) with
           | Prod(t,_) ->

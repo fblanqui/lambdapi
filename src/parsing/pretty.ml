@@ -107,6 +107,7 @@ let modifier : p_modifier pp = fun ppf {elt; _} ->
   | P_expo(e)   -> Print.expo ppf e
   | P_mstrat(s) -> Print.match_strat ppf s
   | P_prop(p)   -> Print.prop ppf p
+  | P_eqth(e)   -> Print.eqth ppf e
   | P_opaq      -> out ppf "opaque "
 
 (* ends with a space if the list is not empty *)

@@ -252,6 +252,7 @@ type p_modifier_aux =
   | P_mstrat of Term.match_strat (** pattern matching strategy *)
   | P_expo of Term.expo (** visibility of symbol outside its modules *)
   | P_prop of Term.prop (** symbol properties: constant, definable, ... *)
+  | P_eqth of Term.eqth (** equational theory *)
   | P_opaq (** opacity *)
 
 type p_modifier = p_modifier_aux loc

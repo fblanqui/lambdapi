@@ -213,12 +213,13 @@ let unlink : t -> unit = fun sign ->
    [prop], matching strategy [strat], opacity [opaq], type [typ], implicit
    arguments [impl], no definition and no rules. [name] should not already be
    used in [sign]. The created symbol is returned. *)
-let add_symbol : t -> expo -> prop -> match_strat -> bool -> strloc -> term ->
-      bool list -> sym =
-  fun sign sym_expo sym_prop sym_mstrat sym_opaq name typ impl ->
+let add_symbol :
+      t -> expo -> prop -> eqth -> match_strat -> bool -> strloc -> term
+      -> bool list -> sym =
+  fun sign sym_expo sym_prop sym_eqth sym_mstrat sym_opaq name typ impl ->
   let sym =
-    create_sym sign.sign_path sym_expo sym_prop sym_mstrat sym_opaq name
-      (cleanup typ) (minimize_impl impl)
+    create_sym sign.sign_path sym_expo sym_prop sym_eqth sym_mstrat sym_opaq
+      name (cleanup typ) (minimize_impl impl)
   in
   sign.sign_symbols := StrMap.add name.elt sym !(sign.sign_symbols);
   sym

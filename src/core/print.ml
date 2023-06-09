@@ -57,14 +57,18 @@ let uid : string pp = string
 
 let path : Path.t pp = Path.pp
 
-let prop : prop pp = fun ppf p ->
-  match p with
+let eqth : eqth pp = fun ppf e ->
+  match e with
   | AC true -> out ppf "left associative commutative "
   | AC false -> out ppf "associative commutative "
   | Assoc true -> out ppf "left associative "
   | Assoc false -> out ppf "associative "
-  | Const -> out ppf "constant "
   | Commu -> out ppf "commutative "
+  | Empty -> ()
+
+let prop : prop pp = fun ppf p ->
+  match p with
+  | Const -> out ppf "constant "
   | Defin -> ()
   | Injec -> out ppf "injective "
 

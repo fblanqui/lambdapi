@@ -34,14 +34,18 @@ type expo =
   | Protec (** Visible everywhere but usable in LHS arguments only. *)
   | Privat (** Not visible and thus not usable. *)
 
+(** Symbol equational theory. *)
+type eqth =
+  | Empty
+  | Commu (** Commutative. *)
+  | Assoc of bool (** To the left if [true], to the right if [false]. *)
+  | AC of bool (** Associative and Commutative. *)
+
 (** Symbol properties. *)
 type prop =
   | Defin (** Definable. *)
   | Const (** Constant. *)
   | Injec (** Injective. *)
-  | Commu (** Commutative. *)
-  | Assoc of bool (** Associative left if [true], right if [false]. *)
-  | AC of bool (** Associative and commutative. *)
 
 (** Representation of a term (or types) in a general sense. Values of the type
     are also used, for example, in the representation of patterns or rewriting
@@ -92,6 +96,7 @@ and sym =
   ; sym_type  : term ref (** Type. *)
   ; sym_impl  : bool list (** Implicit arguments ([true] meaning implicit). *)
   ; sym_prop  : prop (** Property. *)
+  ; sym_eqth  : eqth (** Equational theory. *)
   ; sym_def   : term option ref (** Definition with ≔. *)
   ; sym_opaq  : bool (** Opacity. *)
   ; sym_rules : rule list ref (** Rewriting rules. *)
@@ -354,13 +359,13 @@ let new_problem : unit -> problem = fun () ->
    path [path], exposition [expo], property [prop], opacity [opaq], matching
    strategy [mstrat], name [name.elt], type [typ], implicit arguments [impl],
    position [name.pos], no definition and no rules. *)
-let create_sym : Path.t -> expo -> prop -> match_strat -> bool ->
+let create_sym : Path.t -> expo -> prop -> eqth -> match_strat -> bool ->
   Pos.strloc -> term -> bool list -> sym =
-  fun sym_path sym_expo sym_prop sym_mstrat sym_opaq
+  fun sym_path sym_expo sym_prop sym_eqth sym_mstrat sym_opaq
     { elt = sym_name; pos = sym_pos } typ sym_impl ->
   {sym_path; sym_name; sym_type = ref typ; sym_impl; sym_def = ref None;
    sym_opaq; sym_rules = ref []; sym_dtree = ref Tree_type.empty_dtree;
-   sym_mstrat; sym_prop; sym_expo; sym_pos }
+   sym_mstrat; sym_prop; sym_eqth; sym_expo; sym_pos }
 
 (** [is_constant s] tells whether [s] is a constant. *)
 let is_constant : sym -> bool = fun s -> s.sym_prop = Const
@@ -375,7 +380,7 @@ let is_private : sym -> bool = fun s -> s.sym_expo = Privat
 
 (** [is_modulo s] tells whether the symbol [s] is modulo some equations. *)
 let is_modulo : sym -> bool = fun s ->
-  match s.sym_prop with Assoc _ | Commu | AC _ -> true | _ -> false
+  match s.sym_eqth with Empty -> false | _ -> true
 
 (** [unfold t] repeatedly unfolds the definition of the surface constructor of
     [t], until a significant {!type:term} constructor is found.  The term that
@@ -558,7 +563,8 @@ let right_aliens : sym -> term -> term list = fun s ->
 
 (* unit test *)
 let _ =
-  let s = create_sym [] Privat (AC true) Eager false (Pos.none "+") Kind [] in
+  let s = create_sym [] Public Defin (AC true) Eager false (Pos.none "+")
+            Kind [] in
   let t1 = Vari (new_tvar "x1") in
   let t2 = Vari (new_tvar "x2") in
   let t3 = Vari (new_tvar "x3") in
@@ -580,7 +586,7 @@ let mk_Appl : term * term -> term = fun (t, u) ->
   match get_args t with
   | Symb s, [t1] ->
       begin
-        match s.sym_prop with
+        match s.sym_eqth with
         | Commu when cmp t1 u > 0 -> mk_bin s u t1
         | AC true -> (* left associative symbol *)
             let ts = left_aliens s t1 and us = left_aliens s u in

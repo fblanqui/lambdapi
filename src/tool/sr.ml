@@ -203,7 +203,7 @@ let check_rule : Scope.pre_rule Pos.loc -> rule = fun ({pos; elt} as pr) ->
         (* Instantiation of [m]. *)
         let s =
           let name = Pos.none @@ Printf.sprintf "$%d" m.meta_key in
-          Term.create_sym (Sign.current_path()) Privat Defin Eager
+          Term.create_sym (Sign.current_path()) Privat Defin Empty Eager
             false name !(m.meta_type) [] in
         Stdlib.(symbols := s :: !symbols);
         (* Build a definition for [m]. *)
