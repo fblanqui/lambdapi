@@ -25,13 +25,13 @@ let search_cmd cfg s =
  let run () = out Format.std_formatter "%s@."
    (Tool.Indexing.search_cmd_txt s) in
  Error.handle_exceptions run
-
+(*
 let websearch_cmd cfg port =
  Config.init cfg;
  let run () =
   Tool.Websearch.start ~port () in
  Error.handle_exceptions run
-
+ *)
 let index_cmd cfg add_only rules files =
  Config.init cfg;
  let run () =
@@ -396,12 +396,12 @@ let query_as_arg : string Cmdliner.Term.t =
 let add_only_arg : bool CLT.t =
   let doc = "Adds more terms to the index without cleaning it first." in
   Arg.(value & flag & info ["add"] ~doc)
-
+(*
 let port_arg : int CLT.t =
   let doc =
     "Port used by the webserver." in
   Arg.(value & opt int 8080 & info ["port"] ~docv:"PORT" ~doc)
-
+ *)
 let rules_arg : string list CLT.t =
   let doc =
     "File holding rewriting rules applied before indexing. Use option \
@@ -419,13 +419,13 @@ let search_cmd =
  Cmd.v (Cmd.info "search" ~doc ~man:man_pkg_file)
   Cmdliner.Term.(const LPSearchMain.search_cmd $ Config.full
    $ query_as_arg)
-
+(*
 let websearch_cmd =
  let doc =
   "Starts a webserver for searching the library." in
  Cmd.v (Cmd.info "websearch" ~doc ~man:man_pkg_file)
   Cmdliner.Term.(const LPSearchMain.websearch_cmd $ Config.full $ port_arg)
-
+ *)
 let _ =
   let t0 = Sys.time () in
   Stdlib.at_exit (Debug.print_time t0);
@@ -434,7 +434,7 @@ let _ =
     [ check_cmd ; parse_cmd ; export_cmd ; lsp_server_cmd
     ; decision_tree_cmd ; help_cmd ; version_cmd
     ; Init.cmd ; Install.install_cmd ; Install.uninstall_cmd
-    ; index_cmd ; search_cmd ; websearch_cmd ]
+    ; index_cmd ; search_cmd (*; websearch_cmd*) ]
   in
   let doc = "A type-checker for the lambdapi-calculus modulo rewriting." in
   let sdocs = Manpage.s_common_options in

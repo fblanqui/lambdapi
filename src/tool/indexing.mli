@@ -5,6 +5,7 @@ val dump : unit -> unit
 
 (* search command used by cli *)
 val search_cmd_txt: string -> string
-
+(*
 (* search command used by websearch *)
 val search_cmd_html: string -> string
+ *)

@@ -249,13 +249,13 @@ module DB = struct
 
  let identity_escaper : ho_pp =
   { run = fun x -> x }
-
+(*
  let html_escaper : ho_pp =
   { run  = fun pp fmt x ->
      let res = Dream.html_escape (Format.asprintf "%a" pp x) in
      Format.pp_print_string fmt res
   }
-
+ *)
  let generic_pp_of_position_list ~escaper ~sep =
   Lplib.List.pp
    (fun ppf position ->
@@ -290,22 +290,22 @@ module DB = struct
       (Common.Pos.print_file_contents ~escape ~delimiters)
       pos pree lise)
     "" fmt l
-
+(*
  let html_of_item_list =
   generic_pp_of_item_list ~escape:Dream.html_escape ~escaper:html_escaper
    ~separator:"<br>\n" ~sep:" and<br>\n" ~delimiters:("<p>","</p>")
    ~lis:("<li>","</li>") ~pres:("<pre>","</pre>")
-
+ *)
  let pp_item_list =
   generic_pp_of_item_list ~escape:(fun x -> x) ~escaper:identity_escaper
    ~separator:"\n" ~sep:" and\n" ~delimiters:("","")
    ~lis:("* ","") ~pres:("","")
 
  let pp_item_set fmt set = pp_item_list fmt (ItemSet.bindings set)
-
+(*
  let html_of_item_set fmt set =
   Lplib.Base.out fmt "<ul>%a</ul>" html_of_item_list (ItemSet.bindings set)
-
+ *)
  (* disk persistence *)
 
  let dbpath = Sys.getenv "HOME" ^ "/.LPSearch.db"
@@ -651,11 +651,11 @@ module UserLevelQueries = struct
       fail (Format.asprintf "Error: %s@." msg)
    | exn ->
       fail (Format.asprintf "Error: %s@." (Printexc.to_string exn))
-
+(*
  let search_cmd_html s =
   search_cmd_gen ~fail:(fun x -> "<font color=\"red\">" ^ x ^ "</font>")
    ~pp_results:html_of_item_set s
-
+ *)
  let search_cmd_txt s =
   search_cmd_gen ~fail:(fun x -> Common.Error.fatal_no_pos "%s" x)
   ~pp_results:pp_item_set s
