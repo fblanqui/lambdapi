@@ -427,17 +427,25 @@ let websearch_cmd =
   Cmdliner.Term.(const LPSearchMain.websearch_cmd $ Config.full $ port_arg)
  *)
 let _ =
+  print_endline __LOC__;
   let t0 = Sys.time () in
+  print_endline __LOC__;
   Stdlib.at_exit (Debug.print_time t0);
+  print_endline __LOC__;
   Printexc.record_backtrace true;
+  print_endline __LOC__;
   let cmds =
     [ check_cmd ; parse_cmd ; export_cmd ; lsp_server_cmd
     ; decision_tree_cmd ; help_cmd ; version_cmd
     ; Init.cmd ; Install.install_cmd ; Install.uninstall_cmd
     ; index_cmd ; search_cmd (*; websearch_cmd*) ]
   in
+  print_endline __LOC__;
   let doc = "A type-checker for the lambdapi-calculus modulo rewriting." in
   let sdocs = Manpage.s_common_options in
+  print_endline __LOC__;
   let info = Cmd.info "lambdapi" ~version ~doc ~sdocs in
+  print_endline __LOC__;
   let default = CLT.(ret (const (`Help (`Pager, None)))) in
+  print_endline __LOC__;
   exit (Cmd.eval (Cmd.group info ~default cmds))
