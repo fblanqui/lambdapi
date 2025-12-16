@@ -106,13 +106,14 @@ let handle : Sig_state.t -> proof_state option -> p_query -> result =
        with Not_found -> fatal pos "Unknown flag \"%s\"." id);
       Console.out 1 "flag \"%s\" %s" id (if b then "on" else "off");
       None
-  | P_query_prover(s) -> Why3_tactic.default_prover := s; None
+  | P_query_prover(_s) -> assert false
+    (*Why3_tactic.default_prover := s; None*)
   | P_query_prover_timeout(n) ->
       let n = try int_of_string n with Failure _ ->
                 fatal pos "Too big number (max is %d)" max_int in
       if n < 0 then fatal pos "Negative number";
-      Why3_tactic.timeout := n;
-      None
+      assert false (*Why3_tactic.timeout := n;
+      None*)
   | P_query_print(None) ->
       begin
         match ps with

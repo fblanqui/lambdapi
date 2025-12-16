@@ -655,14 +655,14 @@ let rec handle :
         Rewrite.swap cfg a r l meta_term
       in
       tac_refine pos ps gt gs p prf
-  | P_tac_why3 cfg ->
+  | P_tac_why3 _cfg ->
       begin
         let ids = get_prod_ids env false gt.goal_type in
         let idopts = Env.gen_valid_idopts env ids in
         let ps = assume idopts in
         match ps.proof_goals with
-        | Typ gt::_ ->
-            Why3_tactic.handle ss pos cfg gt; tac_admit ss sym_pos ps gt
+        | Typ _gt::_ -> assert false
+        (*Why3_tactic.handle ss pos cfg gt; tac_admit ss sym_pos ps gt*)
         | _ -> assert false
       end
   | P_tac_try tactic ->
