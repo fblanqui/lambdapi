@@ -791,8 +791,19 @@ let handle (ss:Sig_state.t) (sym_pos:popt) (priv:bool)
           fatal pt.pos "Cannot infer the type of [%a]" term t
       | Some(t,_) ->
         if Unif.solve_noexn p then
-          let ps, t = p_tactic ps g env pos t in handle ps t
-        else fatal pos "Cannot solve typing constraints for [%a]" term t
+          if is_solved p then
+            let ps, t = p_tactic ps g env pos t in handle ps t
+          else (*FIXME: add unsolved constraints/metas as new goals?*)
+            begin
+              List.iter (fatal_msg "unsolved equation: %a@." constr)
+                !p.unsolved;
+              MetaSet.iter
+                (fun m -> if !(m.meta_value) <> None then
+                    fatal_msg "unsolved meta: %a@." term !(m.meta_type))
+                !p.metas;
+              fatal pos "Cannot type (%a)" term t
+            end
+        else fatal pos "(%a) is not typable" term t
 
   in handle
 

@@ -975,14 +975,20 @@ type problem_aux =
   ; recompute : bool
   (** Indicates whether unsolved problems should be rechecked. *)
   ; metas : MetaSet.t
-  (** Set of unsolved metas. *) }
+  (** Problem metas. *) }
 
 type problem = problem_aux Timed.ref
 
+(* Check whether a problem is solved. *)
+let is_solved (p:problem): bool =
+  let open Timed in
+  !p.to_solve = []
+  && !p.unsolved = []
+  && MetaSet.for_all (fun m -> !(m.meta_value) <> None) !p.metas
+
 (** Create a new empty problem. *)
 let new_problem : unit -> problem = fun () ->
-  Timed.ref
-    {to_solve  = []; unsolved = []; recompute = false; metas = MetaSet.empty}
+  Timed.ref {to_solve=[]; unsolved=[]; recompute=false; metas=MetaSet.empty}
 
 (** Printing functions for debug. *)
 module Raw = struct

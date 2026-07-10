@@ -444,6 +444,9 @@ type problem = problem_aux ref
 (** Create a new empty problem. *)
 val new_problem : unit -> problem
 
+(** Check whether a problem is solved. *)
+val is_solved : problem -> bool
+
 (** Positions in terms in reverse order. The i-th argument of a constructor
    has position i-1. *)
 type subterm_pos = int list
