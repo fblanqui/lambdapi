@@ -67,9 +67,9 @@ let new_var_ind : string -> int -> var = fun s i ->
     is not unique: two distinct variables may have the same name. *)
 let base_name : var -> string = fun (_i,n) -> n
 
-(** [uniq_name x] returns a string uniquely identifying the variable [x]. *)
+(** [var_id x] returns a non-negative integer uniquely identifying the
+    variable [x]. *)
 let var_id : var -> int = fun (i,_) -> i
-let uniq_name : var -> string = fun (i,_) -> "v" ^ string_of_int i
 
 (** Sets and maps of variables. *)
 module Var = struct
