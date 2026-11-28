@@ -68,6 +68,7 @@ let new_var_ind : string -> int -> var = fun s i ->
 let base_name : var -> string = fun (_i,n) -> n
 
 (** [uniq_name x] returns a string uniquely identifying the variable [x]. *)
+let var_id : var -> int = fun (i,_) -> i
 let uniq_name : var -> string = fun (i,_) -> "v" ^ string_of_int i
 
 (** Sets and maps of variables. *)

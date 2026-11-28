@@ -281,6 +281,7 @@ val new_var_ind : string -> int -> var
 val base_name : var -> string
 
 (** [uniq_name x] returns a string uniquely identifying the variable [x]. *)
+val var_id : var -> int
 val uniq_name : var -> string
 
 (** Sets and maps of term variables. *)

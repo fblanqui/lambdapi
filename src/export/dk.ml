@@ -99,7 +99,19 @@ let cmp : decl cmp = cmp_map (Lplib.Option.cmp Pos.cmp) pos_of_decl
 
 (** Translation of terms. *)
 
-let var : var pp = fun ppf v -> string ppf (uniq_name v)
+let var_map = Stdlib.ref IntMap.empty
+let var_cnt = Stdlib.ref (-1)
+
+let var : var pp = fun ppf v ->
+  let open Stdlib in
+  let i = var_id v in
+  let i =
+    match IntMap.find_opt i !var_map with
+    | Some i -> i
+    | None ->
+      incr var_cnt; var_map := IntMap.add i !var_cnt !var_map; !var_cnt
+  in
+  out ppf "v%d" i
 
 let patt : int pp = fun ppf i -> out ppf "x%d" i
 
@@ -189,6 +201,7 @@ let rule_decl : (Path.t * string * rule) pp = fun ppf (p, n, r) ->
     (List.pp (prefix " " (term false)) "") r.lhs (term true) r.rhs
 
 let decl : decl pp = fun ppf decl ->
+  Stdlib.(var_cnt := -1);
   match decl with
   | Sym s -> sym_decl ppf s
   | Rule r -> rule_decl ppf r
